@@ -1,5 +1,6 @@
 from datetime import datetime
 from CourseClass import Course
+from UsersClasses import *
 
 def ShowHelp():
 	print("\nВозможные команды:")
@@ -33,6 +34,21 @@ def CreateCourse():
 	pass
 
 def CreateUser():
+	print("Введите ваши...")
+	login = input("\tлогин: ")
+	firstName = input("\tимя: ")
+	lastName = input("\tфамилия: ")
+	while (True):
+		role = input("\tдолжность (T - преподаватель, S - студент): ")
+		if (role == 'T'):
+			users.append(Teacher(login, firstName, lastName))
+			break
+		elif (role == 'S'):
+			users.append(Student(login, firstName, lastName))
+			break
+		else:
+			print("Выберите T, если вы преподаваетль, либо S, если вы студент. Других вариантов нет.")
+	fileDescriptor = open(fileNameUsers, 'a')
 	pass
 
 commandsOperations = {
@@ -44,7 +60,7 @@ commandsOperations = {
 	}
 
 commandsComments = {
-	"/help" : "вывод всех допустимых комманд",
+	"/help" : "вывод всех допустимых команд",
 	"/exit" : "выход из программы",
 	"/showCourses" : "отображение всех имеющихся курсов",
 	"/newCourse" : "запуск помощника по созданию курса"
@@ -77,7 +93,10 @@ def Main():
 	pass
 
 def GetUsersFromFile():
-	fileDescriptor = open(usersFileName)
+	fileDescriptor = open(fileNameUsers)
+	rawData = fileDescriptor.readlines()
+	for line in rawData:
+		login, firstName, lastName, role = line.split(';')
 	pass
 
 def GetCoursesFromFile():
