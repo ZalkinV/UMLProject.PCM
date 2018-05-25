@@ -2,14 +2,10 @@ from datetime import datetime
 from CourseClass import Course
 from UsersClasses import *
 
-def ShowHelp():
+def ShowHelp(commands):
 	print("\nВозможные команды:")
-	for command in commandsOperations:
-		print(command, sep='', end=' — ')
-		try:
-			print(commandsComments[command])
-		except KeyError:
-			print("описание команды отсутствует")
+	for command in commands:
+		print("{name} — {description}".format(name=command[0], description=command[1]))
 	pass
 
 def ShowCourses():
@@ -49,45 +45,46 @@ def CreateUser():
 		else:
 			print("Выберите T, если вы преподаваетль, либо S, если вы студент. Других вариантов нет.")
 	fileDescriptor = open(fileNameUsers, 'a')
+	fileDescriptor.write(login, firstName, lastName, role, sep=';', )
 	pass
 
-commandsOperations = {
-	"/help" : ShowHelp,
-	"/exit" : "exit",
-	"/showCourses" : ShowCourses,
-	"/newCourse" : CreateCourse,
-	"/newUser" : CreateUser
-	}
+def HandleUserInput():
+	commands = (
+	("/help", "вывод всех допустимых команд"),
+	("/showCourses", "отображение всех имеющихся курсов"),
+	("/newCourse", "запуск помощника по созданию курса"),
+	("/exit", "выход из программы")
+	)
 
-commandsComments = {
-	"/help" : "вывод всех допустимых команд",
-	"/exit" : "выход из программы",
-	"/showCourses" : "отображение всех имеющихся курсов",
-	"/newCourse" : "запуск помощника по созданию курса"
-	}
+	command = input("Введите /help для получения справки по командам или введите команду для исполнения: ")
+	while (True):
+		if (command == commands[0][0]):
+			ShowHelp(commands)
+		elif (command == commands[1][0]):
+			ShowCourses()
+		elif (command == commands[2][0]):
+			CreateCourse()
+		elif (command == commands[3][0]):
+			break
+
+		else:
+			print("Команда \"{0}\" неизвестна. Введите действительную команду.".format(command))
+		command = input("Новая команда: ")
+	pass
+
 
 currentUser = None
 courses = []
 users = []
-fileNameUsers = "Users.txt"
-fileNameCourses = "Courses.txt"
-
+fileNameUsers = "DataFiles/Users.txt"
+fileNameCourses = "DataFiles/Courses.txt"
+currentPosition = None
 
 def Main():
 	users = GetUsersFromFile()
 	courses = GetCoursesFromFile()
-	command = input("Введите /help для получения справки по командам или введите команду для исполнения: ")
-	while (True):
-		try:
-			operation = commandsOperations[command]
-			if (operation != "exit"):
-				operation()
-			else:
-				break
-
-		except KeyError:
-			print("Команда \"{0}\" неизвестна. Введите действительную команду.".format(command))
-		command = input("Новая команда: ")
+	
+	HandleUserInput()
 
 	print("Выполнение программы завершено.")
 	pass
