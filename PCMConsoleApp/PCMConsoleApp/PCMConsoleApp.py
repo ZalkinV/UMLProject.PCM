@@ -116,33 +116,25 @@ def HandleUserInput():
 	Command("/newCourse", "запуск помощника по созданию курса"),
 	Command("/newUser", "создание нового аккаунта"),
 	Command("/login", "войти в аккаунт"),
-	Command("/go", "прейти в содержиоме курса/раздела/задания"),
+	Command("/go", "прейти в содержимое курса/раздела/задания"),
 	Command("/exit", "выход из программы")
 	)
 
 	commandsDict = {command.name : command for command in commands}
 
 	beforeLoginMessage = "Перед началом использования программы войдите в свой аккаунт с помощью команды /login вашлогин или зарегистрируйтесь с помощью /newUser"
-	greetingMessage = "Введите /help для получения справки по всем командам (/help -name выведет справку по команде name) или введите команду для исполнения."
+	greetingMessage = "Введите /help для получения справки по всем командам или введите команду для исполнения."
 	print(greetingMessage, beforeLoginMessage, sep='\n')
 	while (True):
 		command = input("Новая команда: ").split(' ')
 		commandName = command[0]
-		commandAttributes = command[1:]
+		commandAttribute = command[1] if len(command) > 1 else ""
 
 		if (currentUser == None and (commandName != "/login" and commandName != "/newUser")):
 			print("Войдите в свой аккаунт перед использованием программы с помощью команды /login вашлогин", end='\n\n')
-		
-		elif (commandName == commands[0].name):
-			if (len(commandAttributes) != 0):
-				try:
-					commandHelpName = commandAttributes[0]
-					commandsDict[commandHelpName].PrintInfo()
-				except KeyError:
-					print("Команды \"{0}\" в программе нет.".format(commandAttributes[0]), end='\n\n')
-			else:
-				ShowHelp(commands)
 
+		elif (commandName == commands[0].name):
+			ShowHelp(commands)
 		elif (commandName == commands[1].name):
 			ShowCourses()
 		elif (commandName == commands[2].name):
@@ -152,10 +144,7 @@ def HandleUserInput():
 		elif (commandName == commands[4].name):
 			CreateUser()
 		elif (commandName == commands[5].name):
-			try:
-				Login(commandAttributes[0])
-			except:
-				Login("")
+			Login(commandAttribute)
 		elif (commandName == commands[-1].name):
 			break
 
