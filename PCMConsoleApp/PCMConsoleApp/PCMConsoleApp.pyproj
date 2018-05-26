@@ -21,6 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CommandClass.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="CourseClass.py">
       <SubType>Code</SubType>
     </Compile>
