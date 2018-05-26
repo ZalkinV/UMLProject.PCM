@@ -11,15 +11,29 @@ def ShowHelp(commands):
 	pass
 
 def ShowCourses():
+	i = 1
 	for course in courses:
-		print("{name} from {start} to {end} by {creator}".format(name=course.name, start=course.startDate.strftime(dateFormat), end=course.endDate.strftime(dateFormat), creator=course.creator._User__login))
+		print("{i}. {courseInfo}".format(i=i, courseInfo=course.GetInfo()))
+		i += 1
 	print()
 	pass
 
 def ShowUsers():
 	for user in users:
-		print(user._User__login, user._User__firstName, user._User__lastName, "Student" if type(user) == Student else "Teacher")
+		print(user.login, user.firstName, user.lastName, "Student" if type(user) == Student else "Teacher")
 	print()
+	pass
+
+
+def ShowCurrentUser():
+	print("Текущий пользователь:", currentUser.GetInfo())
+	pass
+
+def ShowCurrentLocation():
+	locationString = "Текущее местоположение: "
+	for location in currentUserLocation:
+		locationString += '/' +location.name
+	print(locationString, end='\n\n')
 	pass
 
 def CreateCourse():
@@ -115,8 +129,10 @@ def HandleUserInput():
 	Command("/showUsers", "отображение всех пользоватлей в системе"),
 	Command("/newCourse", "запуск помощника по созданию курса"),
 	Command("/newUser", "создание нового аккаунта"),
-	Command("/login", "войти в аккаунт"),
-	Command("/go", "прейти в содержимое курса/раздела/задания"),
+	Command("/login", "войти в аккаунт (/login name)"),
+	Command("/go", "перейти в содержимое курса/раздела/задания (/go номер_курса)"),
+	Command("/curU", "получить информацию о текущем аккаунте"),
+	Command("/curL", "получить информацию своём местоположении в системе"),
 	Command("/exit", "выход из программы")
 	)
 
@@ -145,6 +161,12 @@ def HandleUserInput():
 			CreateUser()
 		elif (commandName == commands[5].name):
 			Login(commandAttribute)
+		elif (commandName == commands[6].name):
+			ChangeUserLocation(commandAttribute)
+		elif (commandName == commands[7].name):
+			ShowCurrentUser()
+		elif (commandName == commands[8].name):
+			ShowCurrentLocation()
 		elif (commandName == commands[-1].name):
 			break
 
@@ -154,13 +176,11 @@ def HandleUserInput():
 
 
 currentUser = None
-currentUserPosition = None
+currentUserLocation = []
 courses = []
 users = []
 fileNameUsers = "DataFiles/Users.txt"
 fileNameCourses = "DataFiles/Courses.txt"
-
-dateFormat = "%d.%m.%Y"
 
 
 def Main():
@@ -170,6 +190,7 @@ def Main():
 	users = GetUsersFromFile()
 	courses = GetCoursesFromFile()
 	
+	Login("zalkin")
 	HandleUserInput()
 
 	print("Выполнение программы завершено.")
@@ -201,5 +222,44 @@ def GetCreator(login):
 		if (user._User__login == login):
 			creator = user
 	return creator
+
+def ChangeUserLocation(newLocation):
+	global currentUserLocation
+
+	if (newLocation == ""):
+		ShowCourses()
+	else:
+		newLocation = int(newLocation)
+		if (newLocation == 0):
+			currentUserLocation.clear()
+		elif (newLocation > 0):
+			if (not currentUserLocation):
+				try:
+					currentUserLocation.append(courses[newLocation - 1])
+					currentUserLocation[-1].ShowParts()
+				except KeyError:
+					print("Курса с таким номером нет, выберите курс из списка")
+
+			elif (isinstance(currentUserLocation[-1], Course)):
+				try:
+					currentCourse = currentUserLocation[-1]
+					currentUserLocation.append(currentCourse.parts[newLocation - 1])
+					currentUserLocation[-1].ShowProblems()
+				except KeyError:
+					print("Раздела с таким номером нет, выберите раздел из списка")
+
+			elif (isinstance(currentUserLocation, Part)):
+				try:
+					currentCourse = currentUserLocation[-2]
+					currentPart = currentUserLocation[-1]
+					currentUserLocation.append(currentCourse.problems[newLocation - 1])
+					currentUserLocation[-1].ShowContent()
+				except KeyError:
+					print("Задания с таким номером нет, выберите задание из списка")
+			ShowCurrentLocation()
+
+		elif (newLocation < 0):
+			pass
+
 
 Main()
