@@ -1,7 +1,9 @@
 import datetime
-from CourseClass import *
 from UsersClasses import *
 from CommandClass import Command
+from CourseClasses.CourseClass import *
+from CourseClasses.PartClass import *
+from CourseClasses.ProblemClass import *
 
 def ShowHelp(commands):
 	print("\nВозможные команды:")
@@ -12,18 +14,17 @@ def ShowHelp(commands):
 
 def ShowCourses():
 	i = 1
-	for course in courses:
-		print("{i}. {courseInfo}".format(i=i, courseInfo=course.GetInfo()))
+	for courseName in numberedCourses:
+		print("{i}. {courseInfo}".format(i=i, courseInfo=courses[courseName].GetInfo()))
 		i += 1
 	print()
 	pass
 
 def ShowUsers():
-	for user in users:
+	for user in users.values():
 		print(user.login, user.firstName, user.lastName, "Student" if type(user) == Student else "Teacher")
 	print()
 	pass
-
 
 def ShowCurrentUser():
 	print("Текущий пользователь:", currentUser.GetInfo())
@@ -32,7 +33,7 @@ def ShowCurrentUser():
 def ShowCurrentLocation():
 	locationString = "Текущее местоположение: "
 	for location in currentUserLocation:
-		locationString += '/' +location.name
+		locationString += '/' + location.name
 	print(locationString, end='\n\n')
 	pass
 
@@ -72,9 +73,21 @@ def CreateCourse():
 	pass
 
 def AddCourse(name, startDate, endDate, creator, description):
-	courses.append(Course(name, startDate, endDate, creator))
-	courses[-1].description = description
-	return courses[-1]
+	courses[name] = Course(name, startDate, endDate, creator)
+	courses[name].description = description
+	numberedCourses.append(name)
+	return courses[name]
+
+def CreatePart():
+	print("Для создания раздела введите...")
+	partName = input("\tназвание раздела: ")
+	partDescription = input("\tописание раздела: ")
+	AddPart(currentUserLocation[-1].name, partName, partDescription)
+	pass
+
+def AddPart(courseName, partName, description):
+	courses[courseName].parts[partName] = Part(partName, description)
+	pass
 
 def WriteData(fileName, *args):
 	toFileString = ""
@@ -103,22 +116,20 @@ def CreateUser():
 def AddUser(login, firstName, lastName, role):
 	isSucces = True
 	if (role == 'T'):
-		users.append(Teacher(login, firstName, lastName))
+		users[login] = Teacher(login, firstName, lastName)
 	elif (role == 'S'):
-		users.append(Student(login, firstName, lastName))
+		users[login] = Student(login, firstName, lastName)
 	else:
 		isSucces = False
 	return isSucces
 
 def Login(login):
-	isExist = False
-	for user in users:
-		if (login == user._User__login):
-			global currentUser 
-			currentUser = user
-			isExist = True
-			print("Вход выполнен успешно,", currentUser._User__firstName, currentUser._User__lastName, end='\n\n')
-	if (not isExist):
+	global currentUser
+	
+	try:
+		currentUser = users[login]
+		print("Вход выполнен успешно,", currentUser.firstName, currentUser.lastName, end='\n\n')
+	except:
 		print("Пользователя с логином {0} нет в системе. Зарегистрируйтесь с помощью команды /newUser".format(login), end='\n\n')
 	pass
 
@@ -133,6 +144,7 @@ def HandleUserInput():
 	Command("/go", "перейти в содержимое курса/раздела/задания (/go номер_курса)"),
 	Command("/curU", "получить информацию о текущем аккаунте"),
 	Command("/curL", "получить информацию своём местоположении в системе"),
+	Command("/newPart", "создать новый раздел (нужно находится внутри курса)"),
 	Command("/exit", "выход из программы")
 	)
 
@@ -167,6 +179,11 @@ def HandleUserInput():
 			ShowCurrentUser()
 		elif (commandName == commands[8].name):
 			ShowCurrentLocation()
+		elif (commandName == commands[9].name):
+			if (isinstance(currentUserLocation, Course)):
+				CreatePart()
+			else:
+				print("Создать раздел можно только находясь внутри курса. Воспользуйтесь командой /go номер курса")
 		elif (commandName == commands[-1].name):
 			break
 
@@ -177,19 +194,23 @@ def HandleUserInput():
 
 currentUser = None
 currentUserLocation = []
-courses = []
-users = []
-fileNameUsers = "DataFiles/Users.txt"
-fileNameCourses = "DataFiles/Courses.txt"
+courses = {}
+numberedCourses = []
+users = {}
+filesDirectory = "DataFiles/"
+fileNameUsers = filesDirectory + "Users.txt"
+fileNameCourses = filesDirectory + "Courses.txt"
+fileNameParts = filesDirectory + "Parts.txt"
 
 
 def Main():
 	open(fileNameUsers, 'a').close()
 	open(fileNameCourses, 'a').close()
-
-	users = GetUsersFromFile()
-	courses = GetCoursesFromFile()
+	open(fileNameParts, 'a').close()
 	
+	GetUsersFromFile()
+	GetCoursesFromFile()
+
 	Login("zalkin")
 	HandleUserInput()
 
@@ -212,30 +233,33 @@ def GetCoursesFromFile():
 		name, start, end, creator, description = line.replace('\n','').split(';')
 		startDate = datetime.datetime.strptime(start, dateFormat)
 		endDate = datetime.datetime.strptime(end, dateFormat)
-		AddCourse(name, startDate, endDate, GetCreator(creator), description)
+		AddCourse(name, startDate, endDate, users[creator], description)
 	fileDescriptor.close()
 	pass
 
-def GetCreator(login):
-	creator = None
-	for user in users:
-		if (user._User__login == login):
-			creator = user
-	return creator
+def GetPartsFromFile():
+	fileDescriptor = open(fileNameParts)
+	rawData = fileDescriptor.readlines()
+	for line in rawData:
+		courseName, partName, description = line.replace('\n','').split(';')
+		AddPart(courseName, partName, description)
+	fileDescriptor.close()
 
+#TODO: Добавить нумерованный список для курсов, чтобы можно было писать /go 1 и переходить к первому выведенному на экран курсу
 def ChangeUserLocation(newLocation):
 	global currentUserLocation
 
 	if (newLocation == ""):
 		ShowCourses()
 	else:
-		newLocation = int(newLocation)
-		if (newLocation == 0):
+		courseNumber = int(newLocation)
+		if (courseNumber == 0):
 			currentUserLocation.clear()
-		elif (newLocation > 0):
+		elif (courseNumber > 0):
 			if (not currentUserLocation):
 				try:
-					currentUserLocation.append(courses[newLocation - 1])
+					choosenCourseName = numberedCourses[courseNumber - 1]
+					currentUserLocation.append(courses[choosenCourseName])
 					currentUserLocation[-1].ShowParts()
 				except KeyError:
 					print("Курса с таким номером нет, выберите курс из списка")
@@ -256,10 +280,10 @@ def ChangeUserLocation(newLocation):
 					currentUserLocation[-1].ShowContent()
 				except KeyError:
 					print("Задания с таким номером нет, выберите задание из списка")
-			ShowCurrentLocation()
 
 		elif (newLocation < 0):
 			pass
-
+		ShowCurrentLocation()
+	pass
 
 Main()

@@ -1,2 +1,3 @@
 zalkin;Виктор;Залкин;S
 t;Teacher;A;T
+tB;Teacher;B;T
