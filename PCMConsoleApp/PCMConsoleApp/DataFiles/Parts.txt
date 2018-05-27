@@ -1,0 +1,2 @@
+FirstCourse!;Part1;Первый раздел курса
+FirstCourse!;Part2;Второй раздел курса

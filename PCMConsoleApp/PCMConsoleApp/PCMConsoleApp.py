@@ -69,7 +69,7 @@ def CreateCourse():
 
 	newCourse = AddCourse(courseName, courseStart, courseEnd, currentUser, description)
 	WriteData(fileNameCourses, newCourse.name, newCourse.startDate.strftime(dateFormat), newCourse.endDate.strftime(dateFormat), newCourse.creator._User__login, newCourse.description)
-	print("Новый курс \"{0}\" был успешно создан!".format(newCourse.name), end='\n\n')
+	print("Новый курс \"{0}\" был успешно создан!".format(courseName), end='\n\n')
 	pass
 
 def AddCourse(name, startDate, endDate, creator, description):
@@ -82,11 +82,24 @@ def CreatePart():
 	print("Для создания раздела введите...")
 	partName = input("\tназвание раздела: ")
 	partDescription = input("\tописание раздела: ")
-	AddPart(currentUserLocation[-1].name, partName, partDescription)
+	currentCourse = currentUserLocation[-1]
+	currentCourse.AddPart(partName, partDescription)
+	WriteData(fileNameParts, currentCourse.name, partName, partDescription)
+	print("Новый раздел \"{0}\" был успешно создан!".format(partName), end='\n\n')
 	pass
 
-def AddPart(courseName, partName, description):
-	courses[courseName].parts[partName] = Part(partName, description)
+def CreateProblem():
+	print("Для создания задания введите...")
+	problemName = input("\tназвание задание: ")
+	description = input("\tописание задания: ")
+	minValue = input("\tминимальное количество баллов за выполнение: ")
+	maxValue = input("\tмаксимальное количество баллов за выполнение: ")
+	step = input("\tразница между соседними баллами: ")
+	ratingForCheck = input("\tколичество баллов за проверку заданий: ")
+	currentCourse = currentUserLocation[-2]
+	currentPart = currentUserLocation[-1]
+	part.AddProblem(problemName, description, minValue, maxValue, step, ratingForCheck)
+	WriteData()
 	pass
 
 def WriteData(fileName, *args):
@@ -126,11 +139,15 @@ def AddUser(login, firstName, lastName, role):
 def Login(login):
 	global currentUser
 	
-	try:
-		currentUser = users[login]
-		print("Вход выполнен успешно,", currentUser.firstName, currentUser.lastName, end='\n\n')
-	except:
-		print("Пользователя с логином {0} нет в системе. Зарегистрируйтесь с помощью команды /newUser".format(login), end='\n\n')
+	if (login != ''):
+		try:
+			currentUser = users[login]
+			print("Вход выполнен успешно,", currentUser.firstName, currentUser.lastName, end='\n\n')
+		except KeyError:
+			print("Пользователя с логином {0} нет в системе. Зарегистрируйтесь с помощью команды /newUser".format(login), end='\n\n')
+	else:
+		currentUser = None
+		print("Вы вышли из аккаунта.", end='\n\n')
 	pass
 
 def HandleUserInput():
@@ -140,11 +157,12 @@ def HandleUserInput():
 	Command("/showUsers", "отображение всех пользоватлей в системе"),
 	Command("/newCourse", "запуск помощника по созданию курса"),
 	Command("/newUser", "создание нового аккаунта"),
-	Command("/login", "войти в аккаунт (/login name)"),
+	Command("/login", "войти в аккаунт (/login name) (при вызове команды без параметров происходит выход из аккаунта)"),
 	Command("/go", "перейти в содержимое курса/раздела/задания (/go номер_курса)"),
 	Command("/curU", "получить информацию о текущем аккаунте"),
 	Command("/curL", "получить информацию своём местоположении в системе"),
 	Command("/newPart", "создать новый раздел (нужно находится внутри курса)"),
+	Command("/newProblem", "создать новое задание (нужно находиться внутри раздела"),
 	Command("/exit", "выход из программы")
 	)
 
@@ -168,9 +186,15 @@ def HandleUserInput():
 		elif (commandName == commands[2].name):
 			ShowUsers()
 		elif (commandName == commands[3].name):
-			CreateCourse()
+			if (isinstance(currentUser, Teacher)):
+				CreateCourse()
+			else:
+				print("Создавать новые курсы могут только преподаватели.", end='\n\n')
 		elif (commandName == commands[4].name):
-			CreateUser()
+			if (currentUser == None):
+				CreateUser()
+			else:
+				print("Для создания нового пользователя вы должны выйти из аккаунта.", end='\n\n')
 		elif (commandName == commands[5].name):
 			Login(commandAttribute)
 		elif (commandName == commands[6].name):
@@ -179,11 +203,25 @@ def HandleUserInput():
 			ShowCurrentUser()
 		elif (commandName == commands[8].name):
 			ShowCurrentLocation()
+		
 		elif (commandName == commands[9].name):
-			if (isinstance(currentUserLocation, Course)):
-				CreatePart()
+			if (isinstance(currentUserLocation[-1], Course)):
+				if (currentUser == currentUserLocation[-1].creator):
+					CreatePart()
+				else:
+					print("Добавлять новые разделы в курс может толкько создатель курса")
 			else:
-				print("Создать раздел можно только находясь внутри курса. Воспользуйтесь командой /go номер курса")
+				print("Создать раздел можно только находясь внутри курса. Воспользуйтесь командой /go номер_курса", end='\n\n')
+		
+		elif (commandName == commands[10].name):
+			if (isinstance(currentUserLocation[-1], Part)):
+				if (currentUser == currentUserLocation[-2].creator):
+					CreateProblem()
+				else:
+					print("Добавлять новые задания в курс может толкько создатель курса", end='\n\n')
+			else:
+				print("Создать задание можно только находясь внутри раздела. Воспользуйтесь командой /go номер_раздела", end='\n\n')
+		
 		elif (commandName == commands[-1].name):
 			break
 
@@ -201,17 +239,20 @@ filesDirectory = "DataFiles/"
 fileNameUsers = filesDirectory + "Users.txt"
 fileNameCourses = filesDirectory + "Courses.txt"
 fileNameParts = filesDirectory + "Parts.txt"
+fileNameProblems = filesDirectory + "Problems.txt"
 
 
 def Main():
 	open(fileNameUsers, 'a').close()
 	open(fileNameCourses, 'a').close()
 	open(fileNameParts, 'a').close()
+	open(fileNameProblems, 'a').close()
 	
 	GetUsersFromFile()
 	GetCoursesFromFile()
+	GetPartsFromFile()
 
-	Login("zalkin")
+	Login("t")
 	HandleUserInput()
 
 	print("Выполнение программы завершено.")
@@ -242,48 +283,70 @@ def GetPartsFromFile():
 	rawData = fileDescriptor.readlines()
 	for line in rawData:
 		courseName, partName, description = line.replace('\n','').split(';')
-		AddPart(courseName, partName, description)
+		courses[courseName].AddPart(partName, description)
 	fileDescriptor.close()
+	pass
 
-#TODO: Добавить нумерованный список для курсов, чтобы можно было писать /go 1 и переходить к первому выведенному на экран курсу
+def GetProblemsFromFile():
+	fileDescriptor = open(fileNameProblems)
+	rawData = fileDescriptor.readlines()
+	for line in rawData:
+		courseName, partName, problemName, description, minValue, maxValue, step, ratingForCheck = line.replace('\n','').split(';')
+		courses[courseName].parts[partName].AddProblem(problemName, description, minValue, maxValue, step, ratingForCheck)
+	pass
+
 def ChangeUserLocation(newLocation):
 	global currentUserLocation
 
 	if (newLocation == ""):
-		ShowCourses()
+		if (not currentUserLocation):
+			ShowCourses()
+		elif (isinstance(currentUserLocation[-1], Course)):
+			currentUserLocation[-1].ShowParts()
+		elif (isinstance(currentUserLocation[-1], Part)):
+			currentUserLocation[-1].ShowProblems()
+		elif (isinstance(currentUserLocation[-1], Problem)):
+			currentUserLocation[-1].ShowContent()
+
 	else:
-		courseNumber = int(newLocation)
-		if (courseNumber == 0):
+		locationNumber = int(newLocation)
+		if (locationNumber == 0):
 			currentUserLocation.clear()
-		elif (courseNumber > 0):
+		elif (locationNumber > 0):
 			if (not currentUserLocation):
 				try:
-					choosenCourseName = numberedCourses[courseNumber - 1]
+					choosenCourseName = numberedCourses[locationNumber - 1]
 					currentUserLocation.append(courses[choosenCourseName])
 					currentUserLocation[-1].ShowParts()
 				except KeyError:
 					print("Курса с таким номером нет, выберите курс из списка")
+				
 
 			elif (isinstance(currentUserLocation[-1], Course)):
 				try:
 					currentCourse = currentUserLocation[-1]
-					currentUserLocation.append(currentCourse.parts[newLocation - 1])
+					currentUserLocation.append(currentCourse.parts[currentCourse.numberedParts[locationNumber - 1]])
 					currentUserLocation[-1].ShowProblems()
 				except KeyError:
 					print("Раздела с таким номером нет, выберите раздел из списка")
+				
 
 			elif (isinstance(currentUserLocation, Part)):
 				try:
-					currentCourse = currentUserLocation[-2]
 					currentPart = currentUserLocation[-1]
-					currentUserLocation.append(currentCourse.problems[newLocation - 1])
+					currentUserLocation.append(currentPart.problems[numberedProblems[locationNumber - 1]])
 					currentUserLocation[-1].ShowContent()
 				except KeyError:
 					print("Задания с таким номером нет, выберите задание из списка")
 
-		elif (newLocation < 0):
+		elif (locationNumber < 0):
+			try:
+				for i in range(abs(locationNumber)):
+					currentUserLocation.pop()
+			except IndexError:
+				print("Вы в самом начале. Назад идти больше некуда")
 			pass
-		ShowCurrentLocation()
+		
 	pass
 
 Main()

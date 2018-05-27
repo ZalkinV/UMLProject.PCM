@@ -1,4 +1,5 @@
 from enum import Enum
+from CourseClasses.PartClass import Part
 
 dateFormat = "%d.%m.%Y"
 
@@ -11,6 +12,7 @@ class Course:
 		self.__statement = Enum("Statement", "Creating Checking Active Finished Deleted")
 		self.__description = None
 		self.__parts = {}
+		self.__numberedParts = []
 		self.__ratingScale = None
 		pass
 
@@ -42,12 +44,24 @@ class Course:
 	def parts(self):
 		return self.__parts
 
+	@property
+	def numberedParts(self):
+		return self.__numberedParts
+
 	def GetInfo(self):
 		return "{name} from {start} to {end} by {creator}".format(name=self.__name, start=self.__startDate.strftime(dateFormat), end=self.__endDate.strftime(dateFormat), creator=self.__creator._User__login)
 
+	def AddPart(self, partName, description):
+		self.__parts[partName] = Part(partName, description)
+		self.__numberedParts.append(partName)
+		pass
+
 	def ShowParts(self):
 		i = 1
-		for part in self.__parts:
-			print("{i}. {partInfo}".format(i=i, partInfo=part.GetInfo()))
+		print(self.__name)
+		for partName in self.__numberedParts:
+			print("\t{i}. {partInfo}".format(i=i, partInfo=self.__parts[partName].GetInfo()))
 			i += 1
+		print()
+		pass
 	pass

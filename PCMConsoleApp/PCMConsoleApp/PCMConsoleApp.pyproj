@@ -33,8 +33,17 @@
     <Compile Include="CourseClasses\PartClass.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Messages\MessageClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Messages\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PCMConsoleApp.py" />
     <Compile Include="CourseClasses\ProblemClass.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="RatingClasses.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="UsersClasses.py">
@@ -44,6 +53,7 @@
   <ItemGroup>
     <Folder Include="CourseClasses\" />
     <Folder Include="D:\Документы\Мои документы\Образование\ИТМО\2 курс\2 семестр\Анализ и проектирование на UML\Проект\UMLProject.PCM\PCMConsoleApp\PCMConsoleApp\CourseClasses\" />
+    <Folder Include="Messages\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
