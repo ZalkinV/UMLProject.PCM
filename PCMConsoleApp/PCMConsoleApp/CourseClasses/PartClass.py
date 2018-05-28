@@ -11,14 +11,26 @@ class Part():
 	@property
 	def name(self):
 		return self.__name
+
+	@property
+	def description(self):
+		return self.__description
 	
+	@property
+	def problems(self):
+		return self.__problems
+
+	@property
+	def numberedProblems(self):
+		return self.__numberedProblems
 
 	def GetInfo(self):
 		return "{name}: {description}".format(name=self.__name, description=self.__description)
 	
-	def AddProblem(self, problemName, description, minValue, maxValue, step, ratingForCheck):
-		self.__problems[problemName] = Problem(problemName)
-		self.__problems[problemName].AddTopic(description)
+	def AddProblem(self, problemName, description, creator, minValue, maxValue, step, ratingForCheck):
+		currentProblem = self.__problems[problemName] = Problem(problemName)
+		currentProblem.AddTopic(description, creator)
+		currentProblem.AddRatingScale(minValue, maxValue, step, ratingForCheck)
 		self.__numberedProblems.append(problemName)
 		pass
 

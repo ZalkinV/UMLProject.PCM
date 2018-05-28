@@ -1,3 +1,4 @@
+moder;Mod;Er;M
 zalkin;Виктор;Залкин;S
-t;Teacher;A;T
-tB;Teacher;B;T
+teacher;Учитель;1;T
+student;Виктор;Залкин;S

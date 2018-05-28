@@ -21,6 +21,9 @@ class User:
 		return "{login} — {fName} {lName}".format(login=self.__login, fName=self.__firstName, lName=self.__lastName)
 	pass
 
+class Moderator(User):
+	pass
+
 class Teacher(User):
 	pass
 

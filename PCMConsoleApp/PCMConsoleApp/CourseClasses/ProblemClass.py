@@ -1,4 +1,5 @@
 from Messages.MessageClass import Topic
+from RatingClasses import *
 
 class Problem():
 	def __init__(self, name):
@@ -22,8 +23,14 @@ class Problem():
 
 	def AddTopic(self, topicText, creator):
 		self.__topic = Topic(topicText, creator)
+		pass
 
+	def AddRatingScale(self, minValue, maxValue, step, ratingForCheck):
+		self.__ratingScale = RatingScale(minValue, maxValue, step, ratingForCheck)
+		pass
+	
 	def ShowContent(self):
-		print(self.__name, "by", self.__topic.sender.login)
-		print(self.__topic.text)
+		print("Problem name:", self.__name, "by", self.__topic.sender.login)
+		print("Problem text:", self.__topic.text)
+		print("Available ratings:", self.__ratingScale.ratingValues, end='\n\n')
 	pass
